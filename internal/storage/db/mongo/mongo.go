@@ -23,14 +23,24 @@ func InitMongoDB(cfg *config.Config) *MongoDatabse {
 	if err != nil {
 		panic("Could not connect to DB " + err.Error())
 	}
-
+	if err = client.Ping(context.TODO(), nil); err != nil {
+		panic("Could not connect to DB " + err.Error())
+	}
 	return &MongoDatabse{
 		Client: client,
 	}
 }
 
 func (db *MongoDatabse) SaveShortUrl(shortUrl *models.ShortUrl) error {
-	// urlCollection := db.Client.Database("")
+	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	_, err := urlCollection.InsertOne(context.TODO(), shortUrl)
+	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			//The URL is already in the database. So there is no error
+			return nil
+		}
+		return err
+	}
 	return nil
 }
 func (db *MongoDatabse) UpdateShortUrl(shortUrl models.ShortUrl) error  { return nil }
