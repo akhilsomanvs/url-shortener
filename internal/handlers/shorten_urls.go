@@ -11,30 +11,32 @@ import (
 )
 
 func CreateShortUrl(db db.Database) func(context *gin.Context) {
-	return createShortUrl
-}
+	return func(context *gin.Context) {
+		var url models.Url
+		err := context.ShouldBind(&url)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", err.Error()))
+			return
+		}
 
-// Create a new short URL
-func createShortUrl(context *gin.Context) {
-	var url models.Url
-	err := context.ShouldBind(&url)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, models.New("Bad Request", err.Error()))
-		return
+		uniqueKey := utils.GenerateUniqueKey()
+		//Store this into DB
+		var createdAt = time.Now()
+		shortUrl := models.ShortUrl{
+			Id:          0,
+			Url:         url.Url,
+			ShortCode:   uniqueKey,
+			CreatedAt:   createdAt,
+			UpdatedAt:   createdAt,
+			AccessCount: 1,
+		}
+		err = db.Storage.SaveShortUrl(&shortUrl)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Could save short url to DB", err.Error()))
+			return
+		}
+		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", shortUrl))
 	}
-
-	uniqueKey := utils.GenerateUniqueKey()
-	//Store this into DB
-	var createdAt = time.Now()
-	_ = models.ShortUrl{
-		Id:          0,
-		Url:         url.Url,
-		ShortCode:   uniqueKey,
-		CreatedAt:   createdAt,
-		UpdatedAt:   createdAt,
-		AccessCount: 1,
-	}
-
 }
 
 // Retrieve an original URL from a short URL

@@ -1,12 +1,12 @@
 package models
 
-type HttpResponseModel struct {
+type ApiResponseModel struct {
 	Message string `json:"message"`
 	Data    any    `json:"data"`
 }
 
-func New(message string, data any) HttpResponseModel {
-	return HttpResponseModel{
+func NewApiResponseModel(message string, data any) ApiResponseModel {
+	return ApiResponseModel{
 		Message: message,
 		Data:    data,
 	}

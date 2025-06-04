@@ -19,9 +19,9 @@ func InitMongoDB(cfg *config.Config) *MongoDatabse {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf("mongo://%s", cfg.Addr)))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf("mongodb://%s", cfg.Addr)))
 	if err != nil {
-		panic("Could not connect to DB")
+		panic("Could not connect to DB " + err.Error())
 	}
 
 	return &MongoDatabse{
@@ -29,7 +29,8 @@ func InitMongoDB(cfg *config.Config) *MongoDatabse {
 	}
 }
 
-func (db *MongoDatabse) SaveShortUrl(shortUrl models.ShortUrl) error {
+func (db *MongoDatabse) SaveShortUrl(shortUrl *models.ShortUrl) error {
+	// urlCollection := db.Client.Database("")
 	return nil
 }
 func (db *MongoDatabse) UpdateShortUrl(shortUrl models.ShortUrl) error  { return nil }

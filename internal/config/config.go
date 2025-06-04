@@ -12,10 +12,15 @@ type HTTPServer struct {
 	Addr string `yaml:"address"`
 }
 
+type Database struct {
+	Name string `yaml:"name"`
+}
+
 type Config struct {
 	Env         string `yaml:"env" env:"ENV" env-required:"true" env-default:"production"`
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	HTTPServer  `yaml:"http_server"`
+	Database    `yaml:"database"`
 }
 
 func MustLoad() *Config {
@@ -28,7 +33,7 @@ func MustLoad() *Config {
 		flag.Parse()
 
 		configPath = *flags
-
+		log.Println("Config Path : " + configPath)
 		if configPath == "" {
 			log.Fatal("Config path is not set")
 		}
