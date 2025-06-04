@@ -1,12 +1,21 @@
 package main
 
-import "github.com/akhilsomanvs/url-shortener/internal/config"
+import (
+	"github.com/akhilsomanvs/url-shortener/internal/config"
+	"github.com/akhilsomanvs/url-shortener/internal/routes"
+	"github.com/akhilsomanvs/url-shortener/internal/storage/db"
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
 	//load config
-	_ = config.MustLoad()
+	cfg := config.MustLoad()
 
-	//database setuip
+	//database setup
+	db := db.InitDB(cfg)
 	//setup router
+	server := gin.Default()
 	//setup server
+	routes.RegisterRoutes(server, db)
+	server.Run(cfg.Addr)
 }
