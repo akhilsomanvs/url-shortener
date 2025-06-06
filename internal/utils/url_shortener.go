@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -15,4 +18,17 @@ func GenerateUniqueKey() string {
 		shortKey[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(shortKey)
+}
+
+func GenerateHashKey(longUrl string) string {
+	hash := md5.Sum([]byte(longUrl))
+	return hex.EncodeToString(hash[:])
+}
+
+func GetHashWithKeyLength(uniqueHash []string, startIndex int) string {
+	endIndex := len(uniqueHash) - 1
+	if startIndex+keyLength < endIndex {
+		return strings.Join(uniqueHash[startIndex:startIndex+keyLength+1], "")
+	}
+	return ""
 }

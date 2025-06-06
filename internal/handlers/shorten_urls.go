@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/akhilsomanvs/url-shortener/internal/models"
 	"github.com/akhilsomanvs/url-shortener/internal/storage/db"
@@ -19,23 +18,27 @@ func CreateShortUrl(db db.Database) func(context *gin.Context) {
 			return
 		}
 
-		uniqueKey := utils.GenerateUniqueKey()
-		//Store this into DB
-		var createdAt = time.Now()
-		shortUrl := models.ShortUrl{
-			Id:          0,
-			Url:         url.Url,
-			ShortCode:   uniqueKey,
-			CreatedAt:   createdAt,
-			UpdatedAt:   createdAt,
-			AccessCount: 1,
+		// uniqueKey := utils.GenerateUniqueKey()
+		uniqueKey := utils.GenerateHashKey(url.Url)
+		//Check if it is already in the DB
+		shortCode, err := db.Storage.GetUniqueShortUrl(uniqueKey, url.Url)
+		if err != nil {
+			//Original URL already exists in DB
+			if shortCode.ShortCode == "" {
+				context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Could not shorten URL", err.Error()))
+				return
+			} else {
+
+			}
 		}
-		err = db.Storage.SaveShortUrl(&shortUrl)
+		//If there are no error
+		//Store the newly created shorturl into DB
+		err = db.Storage.SaveShortUrl(&shortCode)
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Could save short url to DB", err.Error()))
 			return
 		}
-		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", shortUrl))
+		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", shortCode))
 	}
 }
 

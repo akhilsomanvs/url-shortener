@@ -3,10 +3,10 @@ package models
 import "time"
 
 type ShortUrl struct {
-	Id          int64     `json:"id"`
-	Url         string    `json:"url"`
-	ShortCode   string    `json:"shortCode"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	AccessCount int       `json:"accessCount"`
+	Id          int64     `bson:"id" json:"id"`
+	Url         string    `bson:"url" json:"url"`
+	ShortCode   string    `bson:"short_code" json:"short_code"`
+	CreatedAt   time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt   time.Time `bson:"updated_at" json:"updated_at"`
+	AccessCount int       `bson:"access_count" json:"access_count"`
 }
