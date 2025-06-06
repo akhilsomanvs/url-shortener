@@ -28,7 +28,8 @@ func CreateShortUrl(db db.Database) func(context *gin.Context) {
 				context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Could not shorten URL", err.Error()))
 				return
 			} else {
-
+				context.JSON(http.StatusOK, models.NewApiResponseModel("Success", shortCode))
+				return
 			}
 		}
 		//If there are no error
@@ -38,7 +39,7 @@ func CreateShortUrl(db db.Database) func(context *gin.Context) {
 			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Could save short url to DB", err.Error()))
 			return
 		}
-		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", shortCode))
+		context.JSON(http.StatusCreated, models.NewApiResponseModel("Success", shortCode))
 	}
 }
 

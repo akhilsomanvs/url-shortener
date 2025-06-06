@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -27,8 +28,10 @@ func GenerateHashKey(longUrl string) string {
 
 func GetHashWithKeyLength(uniqueHash []string, startIndex int) string {
 	endIndex := len(uniqueHash) - 1
-	if startIndex+keyLength < endIndex {
-		return strings.Join(uniqueHash[startIndex:startIndex+keyLength+1], "")
+	fmt.Println(endIndex, uniqueHash)
+	if startIndex+keyLength-1 <= endIndex {
+		fmt.Println(endIndex, strings.Join(uniqueHash[startIndex:startIndex+keyLength], ""))
+		return strings.Join(uniqueHash[startIndex:startIndex+keyLength], "")
 	}
 	return ""
 }

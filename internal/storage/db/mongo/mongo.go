@@ -69,6 +69,7 @@ func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) 
 			return shortUrl, nil
 		} else {
 			if shortUrl.Url == orignalUrl {
+				shortUrl.ShortCode = key
 				return shortUrl, errors.New("Original URL exists in DB")
 			} else {
 				startIndex++
