@@ -79,9 +79,19 @@ func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) 
 	return models.ShortUrl{}, errors.New("Original URL exists in DB")
 }
 
-func (db *MongoDatabse) UpdateShortUrl(shortUrl models.ShortUrl) error  { return nil }
-func (db *MongoDatabse) DeleteShortUrl(shortUrl string) error           { return nil }
-func (db *MongoDatabse) GetOriginalUrl(shortUrl string) (string, error) { return "", nil }
+func (db *MongoDatabse) GetOriginalUrl(shortCode string) (models.ShortUrl, error) {
+	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	filter := bson.D{{"short_code", shortCode}}
+	var shortUrl models.ShortUrl
+	err := urlCollection.FindOne(context.TODO(), filter).Decode(&shortUrl)
+	if err != nil {
+		return models.ShortUrl{}, errors.New("Could not find URL")
+	}
+	return shortUrl, nil
+}
+
+func (db *MongoDatabse) UpdateShortUrl(shortUrl models.ShortUrl) error { return nil }
+func (db *MongoDatabse) DeleteShortUrl(shortUrl string) error          { return nil }
 func (db *MongoDatabse) GetShortUrlStats(shortUrl string) (models.ShortUrl, error) {
 	return models.ShortUrl{}, nil
 }

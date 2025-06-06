@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(server *gin.Engine, db db.Database) {
+func RegisterRoutes(server *gin.Engine, db *db.Database) {
 	server.POST("/create", handlers.CreateShortUrl(db))
+	server.GET("/shorten/:shortURL", handlers.FetchOriginalURL(db))
 }

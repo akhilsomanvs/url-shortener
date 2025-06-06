@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/akhilsomanvs/url-shortener/internal/models"
@@ -9,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateShortUrl(db db.Database) func(context *gin.Context) {
+func CreateShortUrl(db *db.Database) func(context *gin.Context) {
 	return func(context *gin.Context) {
 		var url models.Url
 		err := context.ShouldBind(&url)
@@ -44,6 +45,40 @@ func CreateShortUrl(db db.Database) func(context *gin.Context) {
 }
 
 // Retrieve an original URL from a short URL
+func FetchOriginalURL(db *db.Database) func(context *gin.Context) {
+	return func(context *gin.Context) {
+		shortCode := context.Param("shortURL")
+		if shortCode == "" {
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse event ID"))
+			return
+		}
+
+		originalUrl, err := db.Storage.GetOriginalUrl(shortCode)
+		if err != nil {
+			context.JSON(http.StatusOK, models.NewApiResponseModel("Short Code Not Found", "This short code is not associated with any data"))
+			return
+		}
+
+		data, err := json.MarshalIndent(originalUrl, "", "")
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Failed to fetch data"))
+			return
+		}
+
+		var i interface{}
+		if err := json.Unmarshal([]byte(data), &i); err != nil {
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Failed to fetch data"))
+			return
+		}
+
+		if m, ok := i.(map[string]interface{}); ok {
+			delete(m, "access_count") // No Need to show the access count
+		}
+		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", i))
+
+	}
+}
+
 // Update an existing short URL
 // Delete an existing short URL
 // Get statistics on the short URL (e.g., number of times accessed)

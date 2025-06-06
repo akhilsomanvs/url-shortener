@@ -16,6 +16,6 @@ func main() {
 	//setup router
 	server := gin.Default()
 	//setup server
-	routes.RegisterRoutes(server, db)
+	routes.RegisterRoutes(server, &db)
 	server.Run(cfg.Addr)
 }

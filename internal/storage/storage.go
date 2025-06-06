@@ -10,7 +10,7 @@ type ShortUrlHandler interface {
 	SaveShortUrl(shortUrl *models.ShortUrl) error
 	UpdateShortUrl(shortUrl models.ShortUrl) error
 	DeleteShortUrl(shortUrl string) error
-	GetOriginalUrl(shortUrl string) (string, error)
+	GetOriginalUrl(shortUrl string) (models.ShortUrl, error)
 	GetShortUrlStats(shortUrl string) (models.ShortUrl, error)
 }
 
