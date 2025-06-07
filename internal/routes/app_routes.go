@@ -10,4 +10,5 @@ func RegisterRoutes(server *gin.Engine, db *db.Database) {
 	server.POST("/shorten", handlers.CreateShortUrl(db))
 	server.GET("/shorten/:shortURL", handlers.FetchOriginalURL(db))
 	server.PUT("/shorten/:shortURL", handlers.UpdateShortURL(db))
+	server.DELETE("/shorten/:shortURL", handlers.DeleteShortURL(db))
 }

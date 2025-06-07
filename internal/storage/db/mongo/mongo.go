@@ -113,7 +113,16 @@ func (db *MongoDatabse) UpdateShortUrl(shortUrl *models.ShortUrl) error {
 
 	return nil
 }
-func (db *MongoDatabse) DeleteShortUrl(shortUrl string) error { return nil }
+func (db *MongoDatabse) DeleteShortUrl(shortUrl string) error {
+	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	filter := bson.D{{Key: "short_code", Value: shortUrl}}
+	_, err := urlCollection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return errors.New("Could not delete data " + err.Error())
+	}
+
+	return nil
+}
 func (db *MongoDatabse) GetShortUrlStats(shortUrl string) (models.ShortUrl, error) {
 	return models.ShortUrl{}, nil
 }

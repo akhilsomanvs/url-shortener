@@ -132,4 +132,21 @@ func UpdateShortURL(db *db.Database) func(context *gin.Context) {
 }
 
 // Delete an existing short URL
+func DeleteShortURL(db *db.Database) func(context *gin.Context) {
+	return func(context *gin.Context) {
+		shortCode := context.Param("shortURL")
+		if shortCode == "" {
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse event ID"))
+			return
+		}
+
+		err := db.Storage.DeleteShortUrl(shortCode)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Failed to delete data"))
+			return
+		}
+		context.JSON(http.StatusNoContent, models.NewApiResponseModel("Success", "Short Code deleted"))
+	}
+}
+
 // Get statistics on the short URL (e.g., number of times accessed)
