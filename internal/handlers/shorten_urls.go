@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/akhilsomanvs/url-shortener/internal/models"
@@ -80,5 +81,40 @@ func FetchOriginalURL(db *db.Database) func(context *gin.Context) {
 }
 
 // Update an existing short URL
+func UpdateShortURL(db *db.Database) func(context *gin.Context) {
+	return func(context *gin.Context) {
+		shortCode := context.Param("shortURL")
+		if shortCode == "" {
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse event ID"))
+			return
+		}
+
+		var url models.Url
+		err := context.ShouldBind(&url)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", err.Error()))
+			return
+		}
+
+		//Fetch the original URL from the DB
+		originalUrl, err := db.Storage.GetOriginalUrl(shortCode)
+		if err != nil {
+			context.JSON(http.StatusOK, models.NewApiResponseModel("Short Code Not Found", "This short code is not associated with any data"))
+			return
+		}
+
+		originalUrl.Url = url.Url
+		err = db.Storage.UpdateShortUrl(&originalUrl)
+
+		if err != nil {
+			fmt.Println(err)
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Failed to update data"))
+			return
+		}
+
+		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", originalUrl))
+	}
+}
+
 // Delete an existing short URL
 // Get statistics on the short URL (e.g., number of times accessed)

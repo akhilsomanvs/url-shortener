@@ -19,7 +19,7 @@ type MongoDatabse struct {
 }
 
 func InitMongoDB(cfg *config.Config) *MongoDatabse {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
 	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
@@ -51,13 +51,10 @@ func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) 
 	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
 	codeSlice := strings.Split(uniqueHash, "")
 	startIndex := 0
-	var createdAt = time.Now()
+
 	shortUrl := models.ShortUrl{
-		Id:          0,
 		Url:         orignalUrl,
 		ShortCode:   "",
-		CreatedAt:   createdAt,
-		UpdatedAt:   createdAt,
 		AccessCount: 1,
 	}
 	for key := utils.GetHashWithKeyLength(codeSlice, startIndex); key != ""; {
@@ -65,7 +62,10 @@ func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) 
 		err := urlCollection.FindOne(context.TODO(), filter).Decode(&shortUrl)
 		if err != nil {
 			//The short code does not exists in DB
+			var createdAt = time.Now()
 			shortUrl.ShortCode = key
+			shortUrl.CreatedAt = createdAt
+			shortUrl.UpdatedAt = createdAt
 			return shortUrl, nil
 		} else {
 			if shortUrl.Url == orignalUrl {
@@ -81,7 +81,7 @@ func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) 
 
 func (db *MongoDatabse) GetOriginalUrl(shortCode string) (models.ShortUrl, error) {
 	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
-	filter := bson.D{{"short_code", shortCode}}
+	filter := bson.D{{Key: "short_code", Value: shortCode}}
 	var shortUrl models.ShortUrl
 	err := urlCollection.FindOne(context.TODO(), filter).Decode(&shortUrl)
 	if err != nil {
@@ -90,8 +90,30 @@ func (db *MongoDatabse) GetOriginalUrl(shortCode string) (models.ShortUrl, error
 	return shortUrl, nil
 }
 
-func (db *MongoDatabse) UpdateShortUrl(shortUrl models.ShortUrl) error { return nil }
-func (db *MongoDatabse) DeleteShortUrl(shortUrl string) error          { return nil }
+func (db *MongoDatabse) UpdateShortUrl(shortUrl *models.ShortUrl) error {
+	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	filter := bson.D{{Key: "short_code", Value: shortUrl.ShortCode}}
+	update := bson.D{
+		{Key: "$set",
+			Value: bson.D{
+				{Key: "url", Value: shortUrl.Url},
+				{Key: "update_at", Value: time.Now()},
+			},
+		},
+	}
+
+	_, err := urlCollection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return errors.New("Could Not update " + err.Error())
+	}
+	err = urlCollection.FindOne(context.TODO(), filter).Decode(&shortUrl)
+	if err != nil {
+		return errors.New("Could Not FIND " + err.Error())
+	}
+
+	return nil
+}
+func (db *MongoDatabse) DeleteShortUrl(shortUrl string) error { return nil }
 func (db *MongoDatabse) GetShortUrlStats(shortUrl string) (models.ShortUrl, error) {
 	return models.ShortUrl{}, nil
 }
