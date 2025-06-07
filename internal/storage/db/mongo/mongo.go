@@ -3,6 +3,7 @@ package dbmongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -16,13 +17,14 @@ import (
 
 type MongoDatabse struct {
 	Client *mongo.Client
+	Config *config.Config
 }
 
 func InitMongoDB(cfg *config.Config) *MongoDatabse {
 	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf("mongodb://%s", cfg.GetStorageAddress())))
 	if err != nil {
 		panic("Could not connect to DB " + err.Error())
 	}
@@ -31,11 +33,12 @@ func InitMongoDB(cfg *config.Config) *MongoDatabse {
 	}
 	return &MongoDatabse{
 		Client: client,
+		Config: cfg,
 	}
 }
 
 func (db *MongoDatabse) SaveShortUrl(shortUrl *models.ShortUrl) error {
-	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	urlCollection := db.Client.Database(db.Config.Database.Name).Collection(db.Config.Database.CollectionName)
 	_, err := urlCollection.InsertOne(context.TODO(), shortUrl)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
@@ -48,7 +51,7 @@ func (db *MongoDatabse) SaveShortUrl(shortUrl *models.ShortUrl) error {
 }
 
 func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) (models.ShortUrl, error) {
-	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	urlCollection := db.Client.Database(db.Config.Database.Name).Collection(db.Config.Database.CollectionName)
 	codeSlice := strings.Split(uniqueHash, "")
 	startIndex := 0
 
@@ -80,7 +83,7 @@ func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) 
 }
 
 func (db *MongoDatabse) GetOriginalUrl(shortCode string) (models.ShortUrl, error) {
-	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	urlCollection := db.Client.Database(db.Config.Database.Name).Collection(db.Config.Database.CollectionName)
 	filter := bson.D{{Key: "short_code", Value: shortCode}}
 	var shortUrl models.ShortUrl
 	err := urlCollection.FindOne(context.TODO(), filter).Decode(&shortUrl)
@@ -91,16 +94,8 @@ func (db *MongoDatabse) GetOriginalUrl(shortCode string) (models.ShortUrl, error
 }
 
 func (db *MongoDatabse) UpdateShortUrl(shortUrl *models.ShortUrl) error {
-	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	urlCollection := db.Client.Database(db.Config.Database.Name).Collection(db.Config.Database.CollectionName)
 	filter := bson.D{{Key: "short_code", Value: shortUrl.ShortCode}}
-	/* update := bson.D{
-		{Key: "$set",
-			Value: bson.D{
-				{Key: "url", Value: shortUrl.Url},
-				{Key: "update_at", Value: time.Now()},
-			},
-		},
-	} */
 	update := bson.D{
 		{Key: "$set",
 			Value: shortUrl,
@@ -119,7 +114,7 @@ func (db *MongoDatabse) UpdateShortUrl(shortUrl *models.ShortUrl) error {
 	return nil
 }
 func (db *MongoDatabse) DeleteShortUrl(shortUrl string) error {
-	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
+	urlCollection := db.Client.Database(db.Config.Database.Name).Collection(db.Config.Database.CollectionName)
 	filter := bson.D{{Key: "short_code", Value: shortUrl}}
 	_, err := urlCollection.DeleteOne(context.TODO(), filter)
 	if err != nil {
@@ -127,7 +122,4 @@ func (db *MongoDatabse) DeleteShortUrl(shortUrl string) error {
 	}
 
 	return nil
-}
-func (db *MongoDatabse) GetShortUrlStats(shortUrl string) (models.ShortUrl, error) {
-	return models.ShortUrl{}, nil
 }

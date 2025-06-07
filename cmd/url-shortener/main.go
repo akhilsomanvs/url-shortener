@@ -17,5 +17,5 @@ func main() {
 	server := gin.Default()
 	//setup server
 	routes.RegisterRoutes(server, &db)
-	server.Run(cfg.Addr)
+	server.Run(cfg.GetHostAddress())
 }

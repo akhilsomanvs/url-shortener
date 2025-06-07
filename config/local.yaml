@@ -1,8 +1,11 @@
 env: "dev"
 http_server:
-  address: "localhost:8080"
+  host: "localhost"
+  port: "8080"
 storage_path: "storage/storage.db"
 database:
-  name: "AppDatabase"
+  path: "localhost:27017"
+  name: "URLShortenerDB"
   version: 1
+  collection: "ShortUrl"
 
