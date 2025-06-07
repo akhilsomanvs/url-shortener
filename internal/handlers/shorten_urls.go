@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/akhilsomanvs/url-shortener/internal/models"
 	"github.com/akhilsomanvs/url-shortener/internal/storage/db"
@@ -50,13 +51,21 @@ func FetchOriginalURL(db *db.Database) func(context *gin.Context) {
 	return func(context *gin.Context) {
 		shortCode := context.Param("shortURL")
 		if shortCode == "" {
-			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse event ID"))
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse short url"))
 			return
 		}
 
 		originalUrl, err := db.Storage.GetOriginalUrl(shortCode)
 		if err != nil {
 			context.JSON(http.StatusOK, models.NewApiResponseModel("Short Code Not Found", "This short code is not associated with any data"))
+			return
+		}
+
+		originalUrl.AccessCount += 1
+		err = db.Storage.UpdateShortUrl(&originalUrl)
+		if err != nil {
+			fmt.Println(err)
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Failed to update data"))
 			return
 		}
 
@@ -75,8 +84,8 @@ func FetchOriginalURL(db *db.Database) func(context *gin.Context) {
 		if m, ok := i.(map[string]interface{}); ok {
 			delete(m, "access_count") // No Need to show the access count
 		}
-		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", i))
-
+		// context.JSON(http.StatusOK, models.NewApiResponseModel("Success", i))
+		context.Redirect(http.StatusFound, originalUrl.Url)
 	}
 }
 
@@ -85,7 +94,7 @@ func UpdateShortURL(db *db.Database) func(context *gin.Context) {
 	return func(context *gin.Context) {
 		shortCode := context.Param("shortURL")
 		if shortCode == "" {
-			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse event ID"))
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse short url"))
 			return
 		}
 
@@ -104,8 +113,8 @@ func UpdateShortURL(db *db.Database) func(context *gin.Context) {
 		}
 
 		originalUrl.Url = url.Url
+		originalUrl.UpdatedAt = time.Now()
 		err = db.Storage.UpdateShortUrl(&originalUrl)
-
 		if err != nil {
 			fmt.Println(err)
 			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Failed to update data"))
@@ -136,7 +145,7 @@ func DeleteShortURL(db *db.Database) func(context *gin.Context) {
 	return func(context *gin.Context) {
 		shortCode := context.Param("shortURL")
 		if shortCode == "" {
-			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse event ID"))
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse short url"))
 			return
 		}
 
@@ -150,3 +159,20 @@ func DeleteShortURL(db *db.Database) func(context *gin.Context) {
 }
 
 // Get statistics on the short URL (e.g., number of times accessed)
+func GetShortURLStats(db *db.Database) func(context *gin.Context) {
+	return func(context *gin.Context) {
+		shortCode := context.Param("shortURL")
+		if shortCode == "" {
+			context.JSON(http.StatusBadRequest, models.NewApiResponseModel("Bad Request", "Could not parse short url"))
+			return
+		}
+
+		originalUrl, err := db.Storage.GetOriginalUrl(shortCode)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Could not find data"))
+			return
+		}
+
+		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", originalUrl))
+	}
+}

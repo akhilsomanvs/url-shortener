@@ -58,7 +58,7 @@ func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) 
 		AccessCount: 1,
 	}
 	for key := utils.GetHashWithKeyLength(codeSlice, startIndex); key != ""; {
-		filter := bson.D{{"short_code", key}}
+		filter := bson.D{{Key: "short_code", Value: key}}
 		err := urlCollection.FindOne(context.TODO(), filter).Decode(&shortUrl)
 		if err != nil {
 			//The short code does not exists in DB
@@ -93,12 +93,17 @@ func (db *MongoDatabse) GetOriginalUrl(shortCode string) (models.ShortUrl, error
 func (db *MongoDatabse) UpdateShortUrl(shortUrl *models.ShortUrl) error {
 	urlCollection := db.Client.Database("AppDatabase").Collection("ShortURL")
 	filter := bson.D{{Key: "short_code", Value: shortUrl.ShortCode}}
-	update := bson.D{
+	/* update := bson.D{
 		{Key: "$set",
 			Value: bson.D{
 				{Key: "url", Value: shortUrl.Url},
 				{Key: "update_at", Value: time.Now()},
 			},
+		},
+	} */
+	update := bson.D{
+		{Key: "$set",
+			Value: shortUrl,
 		},
 	}
 
