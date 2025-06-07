@@ -66,6 +66,7 @@ func (db *MongoDatabse) GetUniqueShortUrl(uniqueHash string, orignalUrl string) 
 		if err != nil {
 			//The short code does not exists in DB
 			var createdAt = time.Now()
+			// shortUrl.Id, _ = primitive.ObjectIDFromHex(key)
 			shortUrl.ShortCode = key
 			shortUrl.CreatedAt = createdAt
 			shortUrl.UpdatedAt = createdAt
@@ -102,7 +103,7 @@ func (db *MongoDatabse) UpdateShortUrl(shortUrl *models.ShortUrl) error {
 		},
 	}
 
-	_, err := urlCollection.UpdateOne(context.Background(), filter, update)
+	_, err := urlCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		return errors.New("Could Not update " + err.Error())
 	}

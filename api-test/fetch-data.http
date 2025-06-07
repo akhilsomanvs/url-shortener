@@ -1,2 +1,2 @@
-GET http://localhost:8080/shorten/99999eb
+GET http://localhost:8080/shorten/e62e244
 Content-Type: application/json
