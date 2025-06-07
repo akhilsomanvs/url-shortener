@@ -31,5 +31,7 @@ go.work.sum
 # .idea/
 # .vscode/
 
-/config
+# Config file added to git in order to run
+# Usually this file/folder would not be added to remote repository
+# /config
 /storage
