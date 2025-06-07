@@ -112,7 +112,22 @@ func UpdateShortURL(db *db.Database) func(context *gin.Context) {
 			return
 		}
 
-		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", originalUrl))
+		data, err := json.MarshalIndent(originalUrl, "", "")
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Failed to fetch data"))
+			return
+		}
+
+		var i interface{}
+		if err := json.Unmarshal([]byte(data), &i); err != nil {
+			context.JSON(http.StatusInternalServerError, models.NewApiResponseModel("Failed", "Failed to fetch data"))
+			return
+		}
+
+		if m, ok := i.(map[string]interface{}); ok {
+			delete(m, "access_count") // No Need to show the access count
+		}
+		context.JSON(http.StatusOK, models.NewApiResponseModel("Success", i))
 	}
 }
 
