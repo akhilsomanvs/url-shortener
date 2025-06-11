@@ -17,5 +17,5 @@ go run cmd/url-shortener/main.go -config config/local.yaml
 ```
 
 ## Invoke APIs
-- If you are using VS Code, you can install [REST CLIENT](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extensions and run the files in [api-test](https://vscode.dev/github/akhilsomanvs/url-shortener/blob/main/api-test) folder directly from VS Code.
-- Or you can use other REST API Clients. API URLs and data can be found in the [api-test](https://vscode.dev/github/akhilsomanvs/url-shortener/blob/main/api-test) folder.
+- If you are using VS Code, you can install [REST CLIENT](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extensions and run the files in [api-test](api-test) folder directly from VS Code.
+- Or you can use other REST API Clients. API URLs and data can be found in the [api-test](api-test) folder.
